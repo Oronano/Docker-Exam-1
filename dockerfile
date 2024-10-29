@@ -13,16 +13,13 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Configuration de MySQL
-RUN service mysql start && \
-    mysql -e "CREATE DATABASE wordpress;" && \
-    mysql -e "CREATE USER 'wpuser'@'localhost' IDENTIFIED BY 'password';" && \
-    mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wpuser'@'localhost';" && \
-    mysql -e "FLUSH PRIVILEGES;"
-
+# Config Apache
 RUN a2enmod rewrite
-
 COPY apache2.conf /etc/apache2/sites-available/000-default.conf
+
+# Init bdd
+COPY init-db.sh /init-db.sh
+RUN chmod +x /init-db.sh && /init-db.sh
 
 # Installation de WordPress
 WORKDIR /var/www/html
@@ -38,12 +35,9 @@ RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.1.1/phpMyAdmin-5.1.1-all-lang
     rm phpMyAdmin-5.1.1-all-languages.zip && \
     chown -R www-data:www-data phpmyadmin
 
-# Copie des fichier locaux
+# Copie des fichier locaux & donne les permissions a start.sh
 COPY index.html /var/www/html/
-COPY start.sh /start.sh
-
-RUN chmod +x /start.sh
 
 EXPOSE 80
 
-CMD ["/start.sh"]
+CMD service mysql start && apachectl -D FOREGROUND

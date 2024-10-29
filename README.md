@@ -2,6 +2,6 @@
 
 Database : wordpress
 
-Login : wpuser
+Login : user
 
-Pwd : password
+Pwd : userpassword
